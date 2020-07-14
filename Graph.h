@@ -24,6 +24,12 @@ typedef struct Node{
 	};
 }Node;
 
+typedef struct NodeLink{
+	Coord pos;
+	Node *node;
+	struct NodeLink *next;
+}NodeLink;
+
 void drawNode(const Node *n, const Coord pos)
 {
 	printf("Drawing pos (%2d, %2d)... ", pos.x, pos.y);
@@ -55,10 +61,6 @@ void drawNode(const Node *n, const Coord pos)
 // 	return current;
 // }
 
-typedef struct{
-	SDL_Keycode wasd;
-	SDL_Keycode arrow;
-}SDLK_Dir;
 
 Node* build(void)
 {
@@ -116,9 +118,9 @@ Node* build(void)
 	return origin;
 }
 
-uint traverseAdj(Node *n, const Coord pos, const bool toggleState)
+uint traverseAdj(Node *n, const Coord pos)
 {
-	static uint totalNodes = 1;
+	uint totalNodes = 1;
 
 	n->toggle = !n->toggle;
 	drawNode(n, pos);
@@ -126,10 +128,10 @@ uint traverseAdj(Node *n, const Coord pos, const bool toggleState)
 	for(uint i = 0; i < 4; i++){
 		if(
 			n->arr[i] &&
-			n->arr[i]->toggle == toggleState
+			n->arr[i]->toggle != n->toggle
 		){
-			totalNodes++;
-			traverseAdj(n->arr[i], coordShift(pos, i, 1), toggleState);
+			totalNodes+=
+			traverseAdj(n->arr[i], coordShift(pos, i, 1));
 		}
 	}
 	return totalNodes;
@@ -138,11 +140,9 @@ uint traverseAdj(Node *n, const Coord pos, const bool toggleState)
 uint traverse(Node *origin)
 {
 	clear();
-	static bool toggleState = 0;	// Current value of toggle in all Nodes.
 	printf("Starting traversal\n");
-	const uint totalNodes = traverseAdj(origin, graphMid, toggleState);
+	const uint totalNodes = traverseAdj(origin, graphMid);
 	printf("Visited %d nodes\n",totalNodes);
-	toggleState != toggleState;
 	draw();
 	while(1){
 		const Ticks frameEnd = getTicks() + TPF;
