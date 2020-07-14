@@ -127,9 +127,12 @@ uint traverseAdj(Node *n, const Coord pos)
 	return totalNodes;
 }
 
-uint traverse(Node *origin)
+NodeLink* traverse(Node *origin)
 {
 	clear();
+	NodeLink *list = calloc(1, sizeof(NodeLink));
+	printf("NodeLink list created\n");
+	list->node = origin;
 	printf("Starting traversal\n");
 	const uint totalNodes = traverseAdj(origin, graphMid);
 	printf("Visited %d nodes\n",totalNodes);
@@ -153,12 +156,12 @@ uint traverse(Node *origin)
 					break;
 				case SDLK_SPACE:
 				case SDLK_RETURN:
-					return totalNodes;
+					return list;
 					break;
 				}
 				break;
 			}
 		}
 	}
-	return totalNodes;
+	return list;
 }

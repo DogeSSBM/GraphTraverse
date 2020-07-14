@@ -50,7 +50,7 @@ int main(int argc, char const *argv[])
 						break;
 					case M_TRAVERSE:
 						if(origin != NULL)
-							printf("Visited %d nodes\n",traverse(origin));
+							traverse(origin);
 						else
 							printf("You must construct a graph first!\n");
 						break;
