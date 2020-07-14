@@ -52,16 +52,6 @@ void drawNode(const Node *n, const Coord pos)
 	}
 }
 
-//Backup thingey
-// Node *appendTile(Node *current, int direction)
-// {
-// 	current->arr[direction] = calloc(1, sizeof(Node));
-// 	current->arr[direction]->arr[dirINV(direction)] = current;
-// 	current = current->arr[direction];
-// 	return current;
-// }
-
-
 Node* build(void)
 {
 	clear();
