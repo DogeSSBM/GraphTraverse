@@ -108,34 +108,73 @@ Node* build(void)
 	return origin;
 }
 
-uint traverseAdj(Node *n, const Coord pos)
+NodeLink* traverseAdj(Node *n, const Coord pos)
 {
-	uint totalNodes = 1;
+	NodeLink *list = calloc(1, sizeof(NodeLink));
+	list->node = n;
+	list->pos = pos;
+	list->next = NULL;
 
 	n->toggle = !n->toggle;
-	drawNode(n, pos);
+	// drawNode(n, pos);
 
 	for(uint i = 0; i < 4; i++){
 		if(
 			n->arr[i] &&
 			n->arr[i]->toggle != n->toggle
 		){
-			totalNodes+=
-			traverseAdj(n->arr[i], coordShift(pos, i, 1));
+			list->next = traverseAdj(n->arr[i], coordShift(pos, i, 1));
 		}
 	}
-	return totalNodes;
+	return list;
+}
+
+void link(NodeLink *link, NodeLink *list)
+{
+	NodeLink *current = list;
+	while(current != NULL){
+		for(uint i = 0; i < 4; i++){
+			if(sameCoord(coordShift(link->pos, i, 1), current->pos))
+				link->node->arr[i] = current->node;
+		}
+		current = current->next;
+	}
+}
+
+void linkNodeList(NodeLink *list)
+{
+	NodeLink *current = list;
+	uint totalNodes = 1;
+	while(current != NULL){
+		link(current, list);
+		current = current->next;
+		printf("linking node %u\n", totalNodes);
+		totalNodes++;
+	}
+	printf("Finished linking %u node(s)\n", totalNodes);
+	// printf("Freeing list...");
+	// for(uint i = 0;)
+
+	// printf("done\n");
+}
+
+void drawList(NodeLink *list)
+{
+	NodeLink *current = list;
+	while(current != NULL){
+		drawNode(current->node, current->pos);
+		current = current->next;
+	}
 }
 
 NodeLink* traverse(Node *origin)
 {
 	clear();
-	NodeLink *list = calloc(1, sizeof(NodeLink));
 	printf("NodeLink list created\n");
-	list->node = origin;
 	printf("Starting traversal\n");
-	const uint totalNodes = traverseAdj(origin, graphMid);
-	printf("Visited %d nodes\n",totalNodes);
+	NodeLink *list = traverseAdj(origin, graphMid);
+	linkNodeList(list);
+	drawList(list);
 	draw();
 	while(1){
 		const Ticks frameEnd = getTicks() + TPF;
