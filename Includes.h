@@ -27,3 +27,4 @@
 #include "DogeUtil.h"
 
 #include "Graph.h"
+#include "GraphBuild.h"
