@@ -31,19 +31,19 @@ void drawNode(const Node *n, const Coord pos)
 	setColor(GREY);
 	fillSquareCoord(wpos, SCALE);
 	printf("done\n");
-	// wpos = coordShift2(wpos, DIR_D, DIR_R, 5);
-	// setColor(BLUE);
-	// fillSquareCoord(wpos, SCALE-10);
-	//
-	// setColor(GREY);
-	// wpos = graphUpscale(pos);
-	// wpos = coordShift2(wpos, DIR_D, DIR_R, SCALE/2);
-	// fillCircleCoord(wpos, 5);
-	//
-	// for(uint i = 0; i < 4; i++){
-	// 	if(n->arr[i])
-	// 		drawLineCoords(wpos, coordShift(wpos, i, SCALE));
-	// }
+	wpos = coordShift2(wpos, DIR_D, DIR_R, 5);
+	setColor(BLUE);
+	fillSquareCoord(wpos, SCALE-10);
+
+	setColor(GREY);
+	wpos = graphUpscale(pos);
+	wpos = coordShift2(wpos, DIR_D, DIR_R, SCALE/2);
+	fillCircleCoord(wpos, 5);
+
+	for(uint i = 0; i < 4; i++){
+		if(n->arr[i])
+			drawLineCoords(wpos, coordShift(wpos, i, SCALE));
+	}
 }
 
 //Backup thingey
@@ -60,15 +60,12 @@ typedef struct{
 	SDL_Keycode arrow;
 }SDLK_Dir;
 
-void build(Node *origin)
+Node* build(void)
 {
 	clear();
-	if(!origin)
-		origin = calloc(1, sizeof(Node));
-	else{
-		printf("just restart the damn thing\n");
-		exit(0);
-	}
+	setColor(BLACK);
+	fillScreen();
+	Node *origin = calloc(1, sizeof(Node));
 	Node *current = origin;
 	Coord pos = graphMid;
 	Direction dir = -1;
@@ -100,41 +97,38 @@ void build(Node *origin)
 				case SDLK_LEFT:
 					dir = keyToDir(event.key.keysym.sym);
 					printf("Dir: %d\n",dir);
-					drawNode(current, pos);
-					draw();
 					pos = coordShift(pos, dir, 1);
 					current->arr[dir] = calloc(1, sizeof(Node));
 					current->arr[dir]->arr[dirINV(dir)] = current;
 					current = current->arr[dir];
+					drawNode(current, pos);
 					break;
 				case SDLK_RETURN:
-					return;
+					return origin;
 					break;
 				}
 				break;
 			}
 			ticksLeft = frameEnd-getTicks();
 		}
+		draw();
 	}
-	return;
+	return origin;
 }
 
 uint traverseAdj(Node *n, const Coord pos, const bool toggleState)
 {
-	static uint totalNodes;
-	if(sameCoord(pos, graphMid))
-		totalNodes = 1;
+	static uint totalNodes = 1;
 
 	n->toggle = !n->toggle;
 	drawNode(n, pos);
-	draw();
 
 	for(uint i = 0; i < 4; i++){
 		if(
 			n->arr[i] &&
 			n->arr[i]->toggle == toggleState
 		){
-			totalNodes +=
+			totalNodes++;
 			traverseAdj(n->arr[i], coordShift(pos, i, 1), toggleState);
 		}
 	}
@@ -143,9 +137,38 @@ uint traverseAdj(Node *n, const Coord pos, const bool toggleState)
 
 uint traverse(Node *origin)
 {
+	clear();
 	static bool toggleState = 0;	// Current value of toggle in all Nodes.
-
-	return traverseAdj(origin, graphMid, toggleState);
-
+	printf("Starting traversal\n");
+	const uint totalNodes = traverseAdj(origin, graphMid, toggleState);
+	printf("Visited %d nodes\n",totalNodes);
 	toggleState != toggleState;
+	draw();
+	while(1){
+		const Ticks frameEnd = getTicks() + TPF;
+		int ticksLeft = frameEnd-getTicks();
+		while(ticksLeft > 0){
+			Event event  = {0};
+			SDL_WaitEventTimeout(&event, ticksLeft);
+			switch(event.type){
+			case SDL_QUIT:
+				printf("Quitting now!\n");
+				exit(0);
+				break;
+			case SDL_KEYDOWN:
+				switch (event.key.keysym.sym) {
+				case SDLK_ESCAPE:
+					printf("Quitting now!\n");
+					exit(0);
+					break;
+				case SDLK_SPACE:
+				case SDLK_RETURN:
+					return totalNodes;
+					break;
+				}
+				break;
+			}
+		}
+	}
+	return totalNodes;
 }

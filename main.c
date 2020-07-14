@@ -9,10 +9,10 @@ int main(int argc, char const *argv[])
 	Node *origin = NULL;
 	while(1){
 		const Ticks frameEnd = getTicks() + TPF;
+		int ticksLeft = frameEnd-getTicks();
 		clear();
 		drawTextCenteredCoord(winMid, label[select]);
 		draw();
-		int ticksLeft = frameEnd-getTicks();
 		while(ticksLeft > 0){
 			Event event  = {0};
 			SDL_WaitEventTimeout(&event, ticksLeft);
@@ -41,11 +41,16 @@ int main(int argc, char const *argv[])
 				case SDLK_RETURN:
 					switch(select){
 					case M_BUILD:
-						build(origin);
+						if(origin){
+							printf("just restart the damn thing\n");
+							exit(0);
+						}else{
+							origin = build();
+						}
 						break;
 					case M_TRAVERSE:
-						if(origin)
-							traverse(origin);
+						if(origin != NULL)
+							printf("Visited %d nodes\n",traverse(origin));
 						else
 							printf("You must construct a graph first!\n");
 						break;
