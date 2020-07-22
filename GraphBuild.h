@@ -41,14 +41,25 @@ void freeNodeList(NodeLink *list, uint totalNodes)
 		free(list);
 		list = n;
 	}
-
-
 }
 
-Node* listToGraph(NodeLink *origin)
+void freeNodesAndNodeList(NodeLink *list, uint totalNodes)
 {
-	Node *graph = origin->node;
-	freeNodeList(origin, linkNodeList(origin));
+	printf("freeing node list of %u nodes\n", totalNodes);
+	while(list != NULL){
+		printf("%u left\n", totalNodes--);
+		NodeLink *n = list->next;
+		free(list->node);
+		free(list);
+		list = n;
+	}
+}
+
+
+Node* listToGraph(NodeLink *list)
+{
+	Node *graph = list->node;
+	freeNodeList(list, linkNodeList(list));
 	return graph;
 }
 
@@ -61,10 +72,30 @@ void drawList(NodeLink *list)
 	}
 }
 
+uint removeDupes(NodeLink *list, NodeLink *link)
+{
+	uint totalNodes = 1;
+	NodeLink *current = list;
+	while(current->next != NULL){
+		totalNodes++;
+		if(sameCoord(current->next->pos, link->pos) &&
+		current->next != link){
+			printf("unlinking and freeing dupe\n");
+			NodeLink *n = current->next->next;
+			free(current->next->node);
+			free(current->next);
+			current->next = n;
+		}
+		current = current->next;
+	}
+	return totalNodes;
+}
+
 Node* build(void)
 {
 	NodeLink *origin = calloc(1, sizeof(NodeLink));
 	NodeLink *current = origin;
+	uint totalNodes = 1;
 	origin->pos = graphMid;
 	origin->node = calloc(1, sizeof(Node));
 	drawNode(origin->node, origin->pos);
@@ -86,6 +117,7 @@ Node* build(void)
 				switch (event.key.keysym.sym) {
 				case SDLK_ESCAPE:
 					printf("Quitting now!\n");
+					freeNodeList(origin, totalNodes);
 					exit(0);
 					break;
 				case SDLK_w:
@@ -106,6 +138,7 @@ Node* build(void)
 						1
 					);
 					current = current->next;
+					totalNodes = removeDupes(origin, current);
 					break;
 				case SDLK_RETURN:
 					return listToGraph(origin);

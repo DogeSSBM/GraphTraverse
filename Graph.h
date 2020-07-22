@@ -65,6 +65,24 @@ uint traverseAdj(Node *n, const Coord pos)
 	return totalNodes;
 }
 
+uint traverseFree(Node *n, const Coord pos)
+{
+	uint totalNodes = 1;
+	for(uint i = 0; i < 4; i++){
+		if(
+			n->arr[i] &&
+			n->arr[i]->toggle != n->toggle
+		){
+			totalNodes+=
+			traverseFree(n->arr[i], coordShift(pos, i, 1));
+		}
+	}
+	printf("freeing node %u at pos (%2d, %2d)\n",
+		totalNodes, pos.x, pos.y);
+
+	return totalNodes;
+}
+
 uint traverse(Node *origin)
 {
 	clear();
